@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "board": "m5sticks3",
+  "kind": "platformio",
+  "os": "Arduino / ESP-IDF FreeRTOS",
+  "architecture": "xtensa-esp32s3",
+  "startup": {
+    "init": "arduino"
+  },
+  "platformio": {
+    "core_version": "6.1.19",
+    "platform": "espressif32@6.12.0",
+    "board": "esp32-s3-devkitc-1",
+    "framework": "arduino",
+    "board_build.partitions": "default_8MB.csv",
+    "monitor_speed": "115200",
+    "upload_speed": "921600",
+    "build_unflags": "-std=gnu++11",
+    "build_flags": [
+      "-DBOARD_HAS_PSRAM",
+      "-DARDUINO_USB_CDC_ON_BOOT=1",
+      "-DARDUINO_USB_MODE=1",
+      "-DCORE_DEBUG_LEVEL=0"
+    ],
+    "lib_deps": [
+      "m5stack/M5Unified@0.2.28",
+      "m5stack/M5GFX@0.2.35",
+      "SPI",
+      "Wire"
+    ],
+    "board_build.arduino.memory_type": "qio_opi"
+  },
+  "flash": {
+    "size_bytes": 8388608,
+    "chip": "esp32s3"
+  },
+  "adapter": {
+    "include": "arduino/include",
+    "source": "arduino/src/Platform.cpp"
+  },
+  "resources": {
+    "display": {
+      "id": "lcd",
+      "width": 135,
+      "height": 240,
+      "touch": false,
+      "controller": "ST7789P3",
+      "mosi": 39,
+      "sclk": 40,
+      "dc": 45,
+      "reset": 21,
+      "cs": 41,
+      "backlight": 38,
+      "orientation": "portrait"
+    },
+    "buttons": {
+      "A": 11,
+      "B": 12
+    },
+    "power": {
+      "controller": "M5PM1",
+      "scl": 48,
+      "sda": 47,
+      "address": 110
+    },
+    "usb": {
+      "baud": 115200
+    }
+  },
+  "verification": {
+    "date": "2026-11-01",
+    "source": "https://docs.m5stack.com/en/core/StickS3",
+    "scope": "Official pin map. USB/LCD firmware scaffold; physical build and BLE not verified."
+  }
+}

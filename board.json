@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "m5sticks3",
+  "name": "M5Stack StickS3",
+  "soc": "ESP32-S3-PICO-1-N8R8",
+  "profiles": {
+    "arduino-esp32": "profiles/arduino-esp32.json"
+  },
+  "documentation": "README.md"
+}
