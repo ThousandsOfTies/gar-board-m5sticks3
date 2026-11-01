@@ -70,6 +70,6 @@
   "verification": {
     "date": "2026-11-01",
     "source": "https://docs.m5stack.com/en/core/StickS3",
-    "scope": "Official pin map. USB/LCD firmware scaffold; physical build and BLE not verified."
+    "scope": "Official pin map; firmware build verified in StickS3 Product on 2026-11-01. Physical USB/LCD/buttons/power not verified. BLE is a separate reusable transport component."
   }
 }

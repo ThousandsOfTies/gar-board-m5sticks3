@@ -13,6 +13,7 @@ Hardware facts;
 lv_disp_buf_t drawBuffer;
 lv_color_t pixels[gar_board::display::width*16];
 uint32_t clockAt=0,batteryAt=0;
+bool usbConnected=false;
 
 void flush(lv_disp_drv_t* driver,const lv_area_t* area,lv_color_t* colors) {
   M5.Display.pushImage(area->x1,area->y1,area->x2-area->x1+1,area->y2-area->y1+1,
@@ -49,6 +50,8 @@ void begin(const Options& options,Hooks hooks) {
 void poll() {
   const auto now=millis();lv_tick_inc(now-clockAt);clockAt=now;
   M5.update();
+  const bool connected=static_cast<bool>(Serial);
+  if(connected!=usbConnected){usbConnected=connected;callbacks.reset(Link::usb,false);}
   readUsb();
   button(M5.BtnA,'A');button(M5.BtnB,'B');
   if(now-batteryAt>=10000) {
@@ -60,5 +63,4 @@ void send(Link link,const std::string& bytes) {
   if(link==Link::usb)Serial.write(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
 
 }
-void confirmPairing(bool) {} // USB scaffold: no radio pairing yet.
 }
