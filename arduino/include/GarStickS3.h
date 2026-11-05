@@ -10,6 +10,7 @@ enum class Link { usb };
 struct Hardware {
   bool powered=true;
   int battery=0, width=0, height=0, board=0;
+  bool charging=false;
 };
 struct Options {
   uint8_t rotation, brightness;
@@ -21,6 +22,7 @@ struct Hooks {
   std::function<void(const Hardware&)> hardware;
 };
 void begin(const Options& options,Hooks hooks);
+void setBrightness(uint8_t brightness);
 void poll();  // Owns the LVGL clock and hardware callbacks on the main task.
 Hardware hardware();
 void send(Link link,const std::string& bytes);

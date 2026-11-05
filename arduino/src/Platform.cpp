@@ -12,7 +12,7 @@ Hooks callbacks;
 Hardware facts;
 lv_disp_buf_t drawBuffer;
 lv_color_t pixels[gar_board::display::width*16];
-uint32_t clockAt=0,batteryAt=0;
+uint32_t clockAt=0,batteryAt=0,chargeAt=0;
 bool usbConnected=false;
 
 void flush(lv_disp_drv_t* driver,const lv_area_t* area,lv_color_t* colors) {
@@ -41,6 +41,7 @@ void begin(const Options& options,Hooks hooks) {
   M5.begin(config); // M5Unified detects StickS3; never force a Plus2 fallback.
   M5.Display.setRotation(options.rotation);M5.Display.setBrightness(options.brightness);M5.Display.fillScreen(TFT_BLACK);
   facts.battery=std::max(0,static_cast<int>(M5.Power.getBatteryLevel()));
+  facts.charging=M5.Power.isCharging()==m5::Power_Class::is_charging;
   facts.width=M5.Display.width();facts.height=M5.Display.height();facts.board=static_cast<int>(M5.getBoard());
   lv_init();lv_disp_buf_init(&drawBuffer,pixels,nullptr,gar_board::display::width*16);
   lv_disp_drv_t driver;lv_disp_drv_init(&driver);driver.hor_res=facts.width;driver.ver_res=facts.height;
@@ -54,10 +55,15 @@ void poll() {
   if(connected!=usbConnected){usbConnected=connected;callbacks.reset(Link::usb,false);}
   readUsb();
   button(M5.BtnA,'A');button(M5.BtnB,'B');
+  if(now-chargeAt>=1000) {
+    chargeAt=now;const bool charging=M5.Power.isCharging()==m5::Power_Class::is_charging;
+    if(charging!=facts.charging){facts.charging=charging;callbacks.hardware(facts);}
+  }
   if(now-batteryAt>=10000) {
     batteryAt=now;facts.battery=std::max(0,static_cast<int>(M5.Power.getBatteryLevel()));callbacks.hardware(facts);
   }
 }
+void setBrightness(uint8_t brightness) { M5.Display.setBrightness(brightness); }
 Hardware hardware() { return facts; }
 void send(Link link,const std::string& bytes) {
   if(link==Link::usb)Serial.write(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
