@@ -4,6 +4,7 @@ M5Stack StickS3 (K150) の独立した基板定義とArduino USB/LCDアダプタ
 基板は端子・LCD・電源・物理ボタンを所有し、アプリの質問やセッションを解釈しません。
 
 - 135×240 ST7789P3、非タッチ、A(GPIO11)・B(GPIO12)の2ボタン。
+- M5Unifiedの内蔵マイクを明示的に開始・停止し、pollのaudio callbackで16kHz/mono/PCM16を提供します。アプリの録音・音声認識・回答は所有しません。録音用PSRAM領域はaudioBufferで確保します。
 - 側面リセットは通常入力として扱いません。Plus2のGPIO4電源保持は使用しません。
 - 電源管理はM5PM1。無線の実装先は今後の独立したBLE通信部品です。
 - 現段階のアダプターはUSBのみ。BLE・SPP・Wi-Fiの実装は含みません。

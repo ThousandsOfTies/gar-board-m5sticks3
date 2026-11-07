@@ -20,9 +20,12 @@ struct Hooks {
   std::function<void(Link,bool)> reset;  // true: discard a broken byte stream
   std::function<void(char,int)> button;
   std::function<void(const Hardware&)> hardware;
+  std::function<void(const int16_t*,size_t)> audio;
 };
 void begin(const Options& options,Hooks hooks);
 void setBrightness(uint8_t brightness);
+bool microphone(bool enabled); // PCM16 mono at 16kHz; callback from poll(), never ISR.
+int16_t* audioBuffer(size_t samples); // PSRAM storage, lifetime of the board runtime.
 void poll();  // Owns the LVGL clock and hardware callbacks on the main task.
 Hardware hardware();
 void send(Link link,const std::string& bytes);

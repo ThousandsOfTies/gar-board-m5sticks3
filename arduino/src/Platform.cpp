@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <utility>
 #include <lvgl.h>
+#include <esp_heap_caps.h>
 
 namespace gar::sticks3 {
 namespace {
@@ -14,6 +15,8 @@ lv_disp_buf_t drawBuffer;
 lv_color_t pixels[gar_board::display::width*16];
 uint32_t clockAt=0,batteryAt=0,chargeAt=0;
 bool usbConnected=false;
+bool recording=false;
+int16_t micSamples[2048];
 
 void flush(lv_disp_drv_t* driver,const lv_area_t* area,lv_color_t* colors) {
   M5.Display.pushImage(area->x1,area->y1,area->x2-area->x1+1,area->y2-area->y1+1,
@@ -37,8 +40,9 @@ void readUsb() {
 void begin(const Options& options,Hooks hooks) {
   callbacks=std::move(hooks);
   Serial.begin(gar_board::usb::baud);
-  auto config=M5.config();config.internal_mic=false;config.internal_spk=false;
+  auto config=M5.config();config.internal_mic=true;config.internal_spk=false;
   M5.begin(config); // M5Unified detects StickS3; never force a Plus2 fallback.
+  M5.Mic.end(); // Recording is explicitly enabled only while requested.
   M5.Display.setRotation(options.rotation);M5.Display.setBrightness(options.brightness);M5.Display.fillScreen(TFT_BLACK);
   facts.battery=std::max(0,static_cast<int>(M5.Power.getBatteryLevel()));
   facts.charging=M5.Power.isCharging()==m5::Power_Class::is_charging;
@@ -55,6 +59,10 @@ void poll() {
   if(connected!=usbConnected){usbConnected=connected;callbacks.reset(Link::usb,false);}
   readUsb();
   button(M5.BtnA,'A');button(M5.BtnB,'B');
+  if(recording && M5.Mic.isRecording()==0) {
+    if(callbacks.audio)callbacks.audio(micSamples,2048);
+    if(recording && !M5.Mic.record(micSamples,2048,16000))microphone(false);
+  }
   if(now-chargeAt>=1000) {
     chargeAt=now;const bool charging=M5.Power.isCharging()==m5::Power_Class::is_charging;
     if(charging!=facts.charging){facts.charging=charging;callbacks.hardware(facts);}
@@ -64,6 +72,15 @@ void poll() {
   }
 }
 void setBrightness(uint8_t brightness) { M5.Display.setBrightness(brightness); }
+bool microphone(bool enabled) {
+  if(!enabled){recording=false;M5.Mic.end();return true;}
+  if(recording)return true;
+  if(!M5.Mic.begin() || !M5.Mic.record(micSamples,2048,16000)){M5.Mic.end();return false;}
+  recording=true;return true;
+}
+int16_t* audioBuffer(size_t samples) {
+  return static_cast<int16_t*>(heap_caps_malloc(samples*sizeof(int16_t),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT));
+}
 Hardware hardware() { return facts; }
 void send(Link link,const std::string& bytes) {
   if(link==Link::usb)Serial.write(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
